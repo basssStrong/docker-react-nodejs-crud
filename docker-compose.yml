@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: test
+    ports:
+      - 5432:5432
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    restart: always
+
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend/:/backend
+    environment:
+      POSTGRES_USER: bass
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: test
+      POSTGRES_HOST: db
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+    command: ./wait-for.sh db:5432 -- nodemon index.js
+    restart: always
+
+  web:
+    build: ./fontend/
+    volumes:
+      - ./fontend/:/fontend
+    ports:
+      - 3000:3000
+    environment:
+      - VITE_API= http://localhost:5000
+volumes:
+  postgresql-data:
